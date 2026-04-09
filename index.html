@@ -231,17 +231,19 @@ require([
     }
   }
 
-  async function trySession() {
-    try {
-      registerOAuth();
-      await esriId.checkSignInStatus(PORTAL + "/sharing");
-      await initMap();
-    } catch (e) {
-      setUser("Clique para entrar");
-      document.getElementById("ub").style.cursor = "pointer";
-      document.getElementById("ub").onclick = login;
-    }
+async function login() {
+  try {
+    registerOAuth();
+
+    await esriId.getCredential(PORTAL + "/sharing");
+
+    await initMap();
+
+  } catch (e) {
+    console.error("Falha no login:", e);
+    showError("Erro no login");
   }
+}
 
   async function initMap() {
     try {
