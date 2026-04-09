@@ -2,10 +2,14 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Croqui Lead GF</title>
+
 <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
 <script src="https://js.arcgis.com/4.29/"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;font-family:Arial,sans-serif;background:#eef0f2;}
@@ -21,19 +25,25 @@ html,body{height:100%;font-family:Arial,sans-serif;background:#eef0f2;}
 .r2{display:flex;gap:4px;}.r2 .fg{flex:1;}
 #ll,#fs,#lg{display:flex;flex-direction:column;gap:3px;}
 .li{display:flex;align-items:center;gap:5px;padding:4px 7px;background:#243447;border-radius:3px;border:1px solid #3a5068;}
-.li input{width:12px;height:12px;accent-color:#5DCAA5;}.li span{font-size:10px;color:#c8dce8;flex:1;}.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.li input{width:12px;height:12px;accent-color:#5DCAA5;}
+.li span{font-size:10px;color:#c8dce8;flex:1;}
+.ld{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
 .fb{background:#243447;border-radius:3px;padding:5px 7px;border:1px solid #3a5068;margin-bottom:3px;}
 .fb .ft{font-size:9px;color:#5DCAA5;font-weight:700;margin-bottom:3px;}
 .fb select{width:100%;background:#1a2b3c;border:1px solid #3a5068;border-radius:3px;color:#e8f0f8;font-size:9px;padding:2px 5px;margin-bottom:2px;}
 .fc{background:transparent;border:1px solid #3a5068;color:#8aaac0;border-radius:3px;padding:2px 6px;font-size:9px;cursor:pointer;}
-.leg-l{margin-bottom:4px;}.leg-t{font-size:9px;font-weight:700;color:#8aaac0;margin-bottom:2px;}
+.leg-l{margin-bottom:4px;}
+.leg-t{font-size:9px;font-weight:700;color:#8aaac0;margin-bottom:2px;}
 .leg-i{display:flex;align-items:center;gap:4px;margin-bottom:2px;}
 .sw{width:12px;height:12px;border-radius:2px;flex-shrink:0;border:1px solid rgba(255,255,255,.1);}
-.sw.ln{height:3px;border-radius:1px;border:none;width:15px;}.sw.ci{border-radius:50%;}
+.sw.ln{height:3px;border-radius:1px;border:none;width:15px;}
+.sw.ci{border-radius:50%;}
 .lbl{font-size:9px;color:#c8dce8;}
 #act{padding:9px 11px;display:flex;flex-direction:column;gap:5px;margin-top:auto;border-top:1px solid #2d4460;flex-shrink:0;}
 .ba{width:100%;padding:7px;border:none;border-radius:3px;font-size:11px;font-weight:700;cursor:pointer;}
-.bp{background:#C8922A;color:#fff;}.be{background:#185FA5;color:#fff;}
+.bp{background:#C8922A;color:#fff;}
+.be{background:#185FA5;color:#fff;}
+
 #mn{margin-left:250px;padding:16px;display:flex;flex-direction:column;align-items:center;}
 #sh{width:297mm;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;}
 #ma{height:173mm;position:relative;overflow:hidden;border-bottom:2px solid #000;}
@@ -41,11 +51,15 @@ html,body{height:100%;font-family:Arial,sans-serif;background:#eef0f2;}
 .esri-ui-top-left,.esri-ui-top-right,.esri-ui-bottom-right,.esri-attribution{display:none!important;}
 #na{position:absolute;top:8px;right:8px;z-index:10;width:28px;height:28px;background:rgba(255,255,255,.92);border:1.5px solid #333;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;}
 #sc{position:absolute;bottom:8px;left:8px;z-index:10;background:rgba(255,255,255,.88);border:1px solid #555;padding:2px 4px;}
-.sg{display:flex;margin-bottom:1px;}.ss{width:18px;height:4px;border:1px solid #000;}.sb2{background:#000;}.sw2{background:#fff;}
+.sg{display:flex;margin-bottom:1px;}
+.ss{width:18px;height:4px;border:1px solid #000;}
+.sb2{background:#000;}
+.sw2{background:#fff;}
 .sn{display:flex;justify-content:space-between;font-size:6px;}
 #ml{position:absolute;inset:0;background:rgba(255,255,255,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:#555;z-index:5;gap:6px;}
 .sp{width:22px;height:22px;border:3px solid #ddd;border-top-color:#C8922A;border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
+
 #ft{height:37mm;border-top:2px solid #000;display:flex;flex-shrink:0;}
 #cv{width:62mm;border-right:1px solid #000;padding:3px 5px;font-size:7.5px;}
 .ct{font-weight:700;font-size:8.5px;border-bottom:1px solid #000;padding-bottom:2px;margin-bottom:3px;}
@@ -54,116 +68,523 @@ html,body{height:100%;font-family:Arial,sans-serif;background:#eef0f2;}
 #it{background:#000;color:#fff;text-align:center;font-size:9.5px;font-weight:700;padding:2px 4px;}
 #ib{flex:1;display:grid;grid-template-columns:1fr 1fr;}
 .ir{border-bottom:1px solid #bbb;border-right:1px solid #bbb;padding:2px 4px;display:flex;flex-direction:column;justify-content:center;}
-.ir.f{grid-column:1/-1;}.ir.n{border-right:none;}
-.il{font-size:6.5px;color:#555;text-transform:uppercase;}.iv{font-size:8.5px;font-weight:700;}
+.ir.f{grid-column:1/-1;}
+.ir.n{border-right:none;}
+.il{font-size:6.5px;color:#555;text-transform:uppercase;}
+.iv{font-size:8.5px;font-weight:700;}
 #qa{width:42mm;border-right:1px solid #000;display:flex;flex-direction:column;}
 #qt{background:#000;color:#fff;text-align:center;font-size:8.5px;font-weight:700;padding:2px 3px;}
 #qb{flex:1;display:flex;flex-direction:column;justify-content:space-around;padding:3px;gap:2px;}
-.qi{border:1px solid #bbb;padding:2px 3px;}.ql{font-size:6.5px;color:#555;}.qv{font-size:8.5px;font-weight:700;}
+.qi{border:1px solid #bbb;padding:2px 3px;}
+.ql{font-size:6.5px;color:#555;}
+.qv{font-size:8.5px;font-weight:700;}
 #lm{width:32mm;display:flex;flex-direction:column;}
 #mg{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #000;}
 .mc{border-right:1px solid #bbb;border-bottom:1px solid #bbb;padding:2px 3px;}
 .mc:nth-child(even){border-right:none;}
-.ml{color:#555;font-size:5.5px;text-transform:uppercase;}.mv{font-weight:700;font-size:6.5px;}
+.ml{color:#555;font-size:5.5px;text-transform:uppercase;}
+.mv{font-weight:700;font-size:6.5px;}
 #la{flex:1;display:flex;align-items:center;justify-content:center;padding:3px;}
 #la img{max-height:26px;max-width:100%;object-fit:contain;}
-@media print{#sb,#mn>*:not(#sh){display:none!important;}#mn{margin-left:0;padding:0;}body{background:#fff;}}
+
+@media print{
+  #sb,#mn>*:not(#sh){display:none!important;}
+  #mn{margin-left:0;padding:0;}
+  body{background:#fff;}
+}
 </style>
 </head>
 <body>
 <div id="sb">
-  <div id="sbh"><h1>Croqui Lead GF</h1><div id="ub">Conectando...</div></div>
-  <div class="sec"><div class="st">Imóvel</div>
+  <div id="sbh">
+    <h1>Croqui Lead GF</h1>
+    <div id="ub">Iniciando...</div>
+  </div>
+
+  <div class="sec">
+    <div class="st">Imóvel</div>
     <div class="fg"><label>Projeto</label><input id="p0" value="São Jose do Rio Preto - SP"></div>
     <div class="fg"><label>Proprietário</label><input id="p1" value="LAÉRCIO NATAL SPARAPANI"></div>
     <div class="fg"><label>Imóvel</label><input id="p2" value="FAZENDA SÃO JOSÉ"></div>
-    <div class="r2"><div class="fg"><label>Município</label><input id="p3" value="CEDRAL"></div><div class="fg"><label>UF</label><input id="p4" value="SP"></div></div>
-    <div class="r2"><div class="fg"><label>Matrícula</label><input id="p5" value="N/I"></div><div class="fg"><label>Código</label><input id="p6" value="SJRP-021"></div></div>
-    <div class="r2"><div class="fg"><label>Faixa(ha)</label><input id="p7" value="11,6060 ha"></div><div class="fg"><label>Área(ha)</label><input id="p8" value="169,3814 ha"></div></div>
-    <div class="r2"><div class="fg"><label>CAR</label><input id="p9" value="CAR"></div><div class="fg"><label>Escala</label><input id="p10" value="1:5.065"></div></div>
-    <div class="r2"><div class="fg"><label>Data</label><input id="p11" value="29/10/2020"></div><div class="fg"><label>Datum</label><input id="p12" value="SIRGAS 2000 22S"></div></div>
+    <div class="r2">
+      <div class="fg"><label>Município</label><input id="p3" value="CEDRAL"></div>
+      <div class="fg"><label>UF</label><input id="p4" value="SP"></div>
+    </div>
+    <div class="r2">
+      <div class="fg"><label>Matrícula</label><input id="p5" value="N/I"></div>
+      <div class="fg"><label>Código</label><input id="p6" value="SJRP-021"></div>
+    </div>
+    <div class="r2">
+      <div class="fg"><label>Faixa(ha)</label><input id="p7" value="11,6060 ha"></div>
+      <div class="fg"><label>Área(ha)</label><input id="p8" value="169,3814 ha"></div>
+    </div>
+    <div class="r2">
+      <div class="fg"><label>CAR</label><input id="p9" value="CAR"></div>
+      <div class="fg"><label>Escala</label><input id="p10" value="1:5.065"></div>
+    </div>
+    <div class="r2">
+      <div class="fg"><label>Data</label><input id="p11" value="29/10/2020"></div>
+      <div class="fg"><label>Datum</label><input id="p12" value="SIRGAS 2000 22S"></div>
+    </div>
   </div>
-  <div class="sec"><div class="st">Camadas</div><div id="ll"><div style="font-size:9px;color:#7a9ab8;">Carregando...</div></div></div>
-  <div class="sec"><div class="st">Filtros</div><div id="fs"><div style="font-size:9px;color:#7a9ab8;">Carregando...</div></div></div>
-  <div class="sec"><div class="st">Legenda</div><div id="lg"><div style="font-size:9px;color:#7a9ab8;">Carregando...</div></div></div>
+
+  <div class="sec">
+    <div class="st">Acesso</div>
+    <button class="ba bp" id="loginBtn" type="button">🔐 Entrar no ArcGIS</button>
+    <button class="ba be" id="logoutBtn" type="button" style="display:none;">Sair</button>
+  </div>
+
+  <div class="sec"><div class="st">Camadas</div><div id="ll"><div style="font-size:9px;color:#7a9ab8;">Aguardando login...</div></div></div>
+  <div class="sec"><div class="st">Filtros</div><div id="fs"><div style="font-size:9px;color:#7a9ab8;">Aguardando login...</div></div></div>
+  <div class="sec"><div class="st">Legenda</div><div id="lg"><div style="font-size:9px;color:#7a9ab8;">Aguardando login...</div></div></div>
+
   <div id="act">
     <button class="ba be" onclick="gerarPDF()">⬇ PDF A4</button>
   </div>
 </div>
-<div id="mn"><div id="sh">
-  <div id="ma">
-    <div id="am"></div>
-    <div id="ml"><div class="sp"></div><span>Carregando...</span></div>
-    <div id="na">N</div>
-    <div id="sc">
-      <div class="sg"><div class="ss sw2"></div><div class="ss sb2"></div><div class="ss sw2"></div><div class="ss sb2"></div></div>
-      <div class="sn"><span>0</span><span>50</span><span>100</span><span>200M</span></div>
+
+<div id="mn">
+  <div id="sh">
+    <div id="ma">
+      <div id="am"></div>
+      <div id="ml"><div class="sp"></div><span>Autenticando e carregando mapa...</span></div>
+      <div id="na">N</div>
+      <div id="sc">
+        <div class="sg">
+          <div class="ss sw2"></div><div class="ss sb2"></div><div class="ss sw2"></div><div class="ss sb2"></div>
+        </div>
+        <div class="sn"><span>0</span><span>50</span><span>100</span><span>200M</span></div>
+      </div>
+    </div>
+
+    <div id="ft">
+      <div id="cv">
+        <div class="ct">Convenções</div>
+        <div class="ci2"><svg width="20" height="9"><line x1="0" y1="4.5" x2="20" y2="4.5" stroke="#000" stroke-width="2"/><line x1="3" y1="2" x2="3" y2="7" stroke="#000" stroke-width="1.5"/><line x1="17" y1="2" x2="17" y2="7" stroke="#000" stroke-width="1.5"/></svg><span>Eixo</span></div>
+        <div class="ci2"><svg width="20" height="9"><line x1="0" y1="4.5" x2="20" y2="4.5" stroke="#0070C0" stroke-width="2" stroke-dasharray="4,3"/></svg><span>Faixa de Domínio</span></div>
+        <div class="ci2"><div style="width:20px;height:9px;background:repeating-linear-gradient(45deg,#d4a843,#d4a843 2px,#f5e4b0 2px,#f5e4b0 5px);border:1px solid #999;"></div><span>Pastagem</span></div>
+        <div class="ci2"><div style="width:20px;height:9px;background:repeating-linear-gradient(45deg,#70AD47,#70AD47 2px,#d9f0c8 2px,#d9f0c8 5px);border:1px dashed #3a7a1a;"></div><span>Reserva</span></div>
+        <div class="ci2"><div style="width:20px;height:2.5px;background:#FF0000;"></div><span>Área a Desapropriar</span></div>
+        <div class="ci2"><div style="width:20px;height:2.5px;background:#000;"></div><span>Limite Propriedade</span></div>
+      </div>
+
+      <div id="ii">
+        <div id="it">Projeto <span id="d0">São Jose do Rio Preto - SP</span></div>
+        <div id="ib">
+          <div class="ir f"><div class="il">Proprietário</div><div class="iv" id="d1">LAÉRCIO NATAL SPARAPANI</div></div>
+          <div class="ir f"><div class="il">Imóvel</div><div class="iv" id="d2">FAZENDA SÃO JOSÉ</div></div>
+          <div class="ir"><div class="il">Matrícula</div><div class="iv" id="d5">N/I</div></div>
+          <div class="ir n"><div class="il">CAR/Fonte</div><div class="iv" id="d9">CAR</div></div>
+          <div class="ir"><div class="il">Município</div><div class="iv" id="d3">CEDRAL</div></div>
+          <div class="ir n"><div class="il">UF</div><div class="iv" id="d4">SP</div></div>
+        </div>
+      </div>
+
+      <div id="qa">
+        <div id="qt">Quadro de Áreas</div>
+        <div id="qb">
+          <div class="qi"><div class="ql">Código Imóvel</div><div class="qv" id="d6">SJRP-021</div></div>
+          <div class="qi"><div class="ql">Faixa de Domínio</div><div class="qv" id="d7">11,6060 ha</div></div>
+          <div class="qi"><div class="ql">Área Total</div><div class="qv" id="d8">169,3814 ha</div></div>
+        </div>
+      </div>
+
+      <div id="lm">
+        <div id="mg">
+          <div class="mc"><div class="ml">Formato</div><div class="mv">A4</div></div>
+          <div class="mc"><div class="ml">Escala</div><div class="mv" id="d10">1:5.065</div></div>
+          <div class="mc"><div class="ml">Data</div><div class="mv" id="d11">29/10/2020</div></div>
+          <div class="mc"><div class="ml">Datum</div><div class="mv" id="d12">SIRGAS 2000 22S</div></div>
+        </div>
+        <div id="la">
+          <div style="font-size:11px;font-weight:900;color:#1a2b3c;align-items:center;display:flex;">lead<span style="color:#C8922A">▶</span></div>
+        </div>
+      </div>
     </div>
   </div>
-  <div id="ft">
-    <div id="cv">
-      <div class="ct">Convenções</div>
-      <div class="ci2"><svg width="20" height="9"><line x1="0" y1="4.5" x2="20" y2="4.5" stroke="#000" stroke-width="2"/><line x1="3" y1="2" x2="3" y2="7" stroke="#000" stroke-width="1.5"/><line x1="17" y1="2" x2="17" y2="7" stroke="#000" stroke-width="1.5"/></svg><span>Eixo</span></div>
-      <div class="ci2"><svg width="20" height="9"><line x1="0" y1="4.5" x2="20" y2="4.5" stroke="#0070C0" stroke-width="2" stroke-dasharray="4,3"/></svg><span>Faixa de Domínio</span></div>
-      <div class="ci2"><div style="width:20px;height:9px;background:repeating-linear-gradient(45deg,#d4a843,#d4a843 2px,#f5e4b0 2px,#f5e4b0 5px);border:1px solid #999;"></div><span>Pastagem</span></div>
-      <div class="ci2"><div style="width:20px;height:9px;background:repeating-linear-gradient(45deg,#70AD47,#70AD47 2px,#d9f0c8 2px,#d9f0c8 5px);border:1px dashed #3a7a1a;"></div><span>Reserva</span></div>
-      <div class="ci2"><div style="width:20px;height:2.5px;background:#FF0000;"></div><span>Área a Desapropriar</span></div>
-      <div class="ci2"><div style="width:20px;height:2.5px;background:#000;"></div><span>Limite Propriedade</span></div>
-    </div>
-    <div id="ii">
-      <div id="it">Projeto <span id="d0">São Jose do Rio Preto - SP</span></div>
-      <div id="ib">
-        <div class="ir f"><div class="il">Proprietário</div><div class="iv" id="d1">LAÉRCIO NATAL SPARAPANI</div></div>
-        <div class="ir f"><div class="il">Imóvel</div><div class="iv" id="d2">FAZENDA SÃO JOSÉ</div></div>
-        <div class="ir"><div class="il">Matrícula</div><div class="iv" id="d5">N/I</div></div>
-        <div class="ir n"><div class="il">CAR/Fonte</div><div class="iv" id="d9">CAR</div></div>
-        <div class="ir"><div class="il">Município</div><div class="iv" id="d3">CEDRAL</div></div>
-        <div class="ir n"><div class="il">UF</div><div class="iv" id="d4">SP</div></div>
-      </div>
-    </div>
-    <div id="qa">
-      <div id="qt">Quadro de Áreas</div>
-      <div id="qb">
-        <div class="qi"><div class="ql">Código Imóvel</div><div class="qv" id="d6">SJRP-021</div></div>
-        <div class="qi"><div class="ql">Faixa de Domínio</div><div class="qv" id="d7">11,6060 ha</div></div>
-        <div class="qi"><div class="ql">Área Total</div><div class="qv" id="d8">169,3814 ha</div></div>
-      </div>
-    </div>
-    <div id="lm">
-      <div id="mg">
-        <div class="mc"><div class="ml">Formato</div><div class="mv">A4</div></div>
-        <div class="mc"><div class="ml">Escala</div><div class="mv" id="d10">1:5.065</div></div>
-        <div class="mc"><div class="ml">Data</div><div class="mv" id="d11">29/10/2020</div></div>
-        <div class="mc"><div class="ml">Datum</div><div class="mv" id="d12">SIRGAS 2000 22S</div></div>
-      </div>
-      <div id="la"><img src="https://leadgf.maps.arcgis.com/sharing/rest/content/items/LOGO_ITEM_ID/data" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" alt="Lead GF"><div style="display:none;font-size:11px;font-weight:900;color:#1a2b3c;align-items:center;">lead<span style="color:#C8922A">▶</span></div></div>
-    </div>
-  </div>
-</div></div>
+</div>
+
 <script>
-require(["esri/WebMap","esri/views/MapView","esri/identity/IdentityManager","esri/portal/Portal"],
-function(WebMap,MapView,esriId,Portal){
-const P="https://leadgf.maps.arcgis.com",W="5d5ef5a6a71042739973816e388dbd4c";
-function inh(){try{const p=window.parent&&window.parent.require&&window.parent.require("esri/identity/IdentityManager");if(p){(p.credentials||[]).forEach(c=>{try{esriId.registerToken({server:c.server,token:c.token,expires:c.expires,userId:c.userId,ssl:c.ssl});}catch(e){}});return true;}}catch(e){}return false;}
-function init(){inh();
-new Portal({url:P,authMode:"immediate"}).load().then(p=>{document.getElementById("ub").textContent="✓ "+(p.user?p.user.username:"Logado");}).catch(()=>{});
-const wm=new WebMap({portalItem:{id:W,portal:{url:P}}});
-const v=new MapView({container:"am",map:wm,ui:{components:[]}});
-window._v=v;
-v.when(()=>{
-  document.getElementById("ml").style.display="none";
-  const ly=wm.allLayers.filter(l=>!["tile","vector-tile","base-tile"].includes(l.type));
-  bLayers(ly);bFilters(ly);bLeg(ly);
-}).catch(e=>{document.getElementById("ml").innerHTML='<span style="color:#c55;font-size:10px;">Erro: '+e.message+'</span>';});
-}
-function gc(l){try{const r=l.renderer,s=r&&(r.symbol||(r.uniqueValueInfos&&r.uniqueValueInfos[0]&&r.uniqueValueInfos[0].symbol)),c=s&&s.color;return c?`rgb(${c.r},${c.g},${c.b})`:"#5DCAA5";}catch(e){return"#5DCAA5";}}
-function bLayers(ls){const c=document.getElementById("ll");c.innerHTML="";if(!ls.length){c.innerHTML='<div style="font-size:9px;color:#7a9ab8;">Nenhuma camada.</div>';return;}ls.forEach(l=>{const d=document.createElement("div");d.className="li";const cb=document.createElement("input");cb.type="checkbox";cb.checked=l.visible;cb.addEventListener("change",()=>l.visible=cb.checked);const dt=document.createElement("div");dt.className="ld";dt.style.background=gc(l);const lb=document.createElement("span");lb.textContent=l.title||"Camada";d.appendChild(cb);d.appendChild(dt);d.appendChild(lb);c.appendChild(d);});}
-function bFilters(ls){const c=document.getElementById("fs");c.innerHTML="";let any=false;ls.forEach(l=>{if(!l.fields)return;const fs=l.fields.filter(f=>f.type==="string"||f.domain).slice(0,3);if(!fs.length)return;any=true;const b=document.createElement("div");b.className="fb";b.innerHTML=`<div class="ft">${l.title}</div>`;const ss=[];fs.forEach(f=>{const s=document.createElement("select");s.innerHTML=`<option value="">— ${f.alias||f.name} —</option>`;if(f.domain&&f.domain.codedValues)f.domain.codedValues.forEach(cv=>{s.innerHTML+=`<option value="${cv.code}">${cv.name}</option>`;});else if(l.queryFeatures)l.queryFeatures({where:"1=1",outFields:[f.name],returnDistinctValues:true,returnGeometry:false,num:50}).then(r=>{[...new Set(r.features.map(x=>x.attributes[f.name]).filter(v=>v!=null))].sort().forEach(v=>{s.innerHTML+=`<option value="${v}">${v}</option>`;});}).catch(()=>{});s.dataset.field=f.name;s.addEventListener("change",()=>{const cl=ss.filter(x=>x.value).map(x=>`${x.dataset.field}='${x.value.replace(/'/g,"''")}'`);l.definitionExpression=cl.length?cl.join(" AND "):"";});ss.push(s);b.appendChild(s);});const btn=document.createElement("button");btn.className="fc";btn.textContent="Limpar";btn.onclick=()=>{ss.forEach(s=>s.value="");l.definitionExpression="";};b.appendChild(btn);c.appendChild(b);});if(!any)c.innerHTML='<div style="font-size:9px;color:#7a9ab8;">Sem filtros.</div>';}
-function bLeg(ls){const c=document.getElementById("lg");c.innerHTML="";let any=false;ls.forEach(l=>{const r=l.renderer;if(!r)return;any=true;const ld=document.createElement("div");ld.className="leg-l";ld.innerHTML=`<div class="leg-t">${l.title||"Camada"}</div>`;function ai(s,lb){const it=document.createElement("div");it.className="leg-i";const sw=document.createElement("div");const cl=s&&s.color?`rgb(${s.color.r},${s.color.g},${s.color.b})`:"#aaa";if(!s){sw.className="sw";sw.style.background="#aaa";}else if(s.type==="simple-line"||s.type==="esriSLS"){sw.className="sw ln";sw.style.background=cl;}else if(s.type==="simple-marker"||s.type==="esriSMS"){sw.className="sw ci";sw.style.background=cl;}else{sw.className="sw";sw.style.background=cl;}const lbl=document.createElement("span");lbl.className="lbl";lbl.textContent=lb||"";it.appendChild(sw);it.appendChild(lbl);ld.appendChild(it);}
-if(r.type==="simple")ai(r.symbol,l.title);else if(r.type==="unique-value")(r.uniqueValueInfos||[]).forEach(u=>ai(u.symbol,u.label||u.value));else if(r.type==="class-breaks")(r.classBreakInfos||[]).forEach(b=>ai(b.symbol,b.label));else ai(null,"Ver mapa");c.appendChild(ld);});if(!any)c.innerHTML='<div style="font-size:9px;color:#7a9ab8;">Sem legenda.</div>';}
-window.gerarPDF=async function(){const{jsPDF}=window.jspdf,sh=document.getElementById("sh"),sb=document.getElementById("sb"),mn=document.getElementById("mn");sb.style.display="none";mn.style.marginLeft="0";try{await new Promise(r=>setTimeout(r,600));const cv=await html2canvas(sh,{scale:2,useCORS:true,allowTaint:true});const pdf=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});pdf.addImage(cv.toDataURL("image/jpeg",.95),"JPEG",0,0,297,210);pdf.save(`Lead_${document.getElementById("p6").value.replace(/\s/g,"_")}.pdf`);}finally{sb.style.display="flex";mn.style.marginLeft="250px";}};
-[["p0","d0"],["p1","d1"],["p2","d2"],["p3","d3"],["p4","d4"],["p5","d5"],["p6","d6"],["p7","d7"],["p8","d8"],["p9","d9"],["p10","d10"],["p11","d11"],["p12","d12"]].forEach(([i,d])=>{const el=document.getElementById(i),dl=document.getElementById(d);if(el&&dl)el.addEventListener("input",()=>dl.textContent=el.value);});
-init();
+require([
+  "esri/config",
+  "esri/WebMap",
+  "esri/views/MapView",
+  "esri/portal/Portal",
+  "esri/identity/OAuthInfo",
+  "esri/identity/IdentityManager"
+], function(esriConfig, WebMap, MapView, Portal, OAuthInfo, esriId) {
+
+  const CONFIG = {
+    portalUrl: "https://leadgf.maps.arcgis.com",
+    webmapId: "5d5ef5a6a71042739973816e388dbd4c",
+
+    // SUBSTITUA PELO APP ID DO SEU APP OAUTH
+    appId: "COLOQUE_AQUI_O_SEU_APP_ID",
+
+    // TEM QUE ESTAR CADASTRADO NO APP OAUTH
+    redirectUri: "https://leadfelipe.github.io/croqui-lead/oauth-callback.html"
+  };
+
+  let view = null;
+  let webmap = null;
+
+  const statusEl = document.getElementById("ub");
+  const loaderEl = document.getElementById("ml");
+  const loginBtn = document.getElementById("loginBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  function setStatus(text, isError) {
+    statusEl.textContent = text;
+    statusEl.style.background = isError ? "#B54747" : "#1D9E75";
+  }
+
+  function showLoader(text) {
+    loaderEl.style.display = "flex";
+    loaderEl.innerHTML = '<div class="sp"></div><span>' + text + '</span>';
+  }
+
+  function showError(text) {
+    loaderEl.style.display = "flex";
+    loaderEl.innerHTML = '<span style="color:#c55;font-size:10px;text-align:center;padding:12px;">' + text + '</span>';
+  }
+
+  function hideLoader() {
+    loaderEl.style.display = "none";
+  }
+
+  function escapeSqlValue(value) {
+    return String(value).replace(/'/g, "''");
+  }
+
+  function getColor(layer) {
+    try {
+      const r = layer.renderer;
+      const s = r && (r.symbol || (r.uniqueValueInfos && r.uniqueValueInfos[0] && r.uniqueValueInfos[0].symbol));
+      const c = s && s.color;
+      return c ? "rgb(" + c.r + "," + c.g + "," + c.b + ")" : "#5DCAA5";
+    } catch (e) {
+      return "#5DCAA5";
+    }
+  }
+
+  function buildLayers(layers) {
+    const c = document.getElementById("ll");
+    c.innerHTML = "";
+    if (!layers.length) {
+      c.innerHTML = '<div style="font-size:9px;color:#7a9ab8;">Nenhuma camada.</div>';
+      return;
+    }
+
+    layers.forEach(layer => {
+      const d = document.createElement("div");
+      d.className = "li";
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = layer.visible;
+      cb.addEventListener("change", () => {
+        layer.visible = cb.checked;
+      });
+
+      const dt = document.createElement("div");
+      dt.className = "ld";
+      dt.style.background = getColor(layer);
+
+      const lb = document.createElement("span");
+      lb.textContent = layer.title || "Camada";
+
+      d.appendChild(cb);
+      d.appendChild(dt);
+      d.appendChild(lb);
+      c.appendChild(d);
+    });
+  }
+
+  function buildFilters(layers) {
+    const c = document.getElementById("fs");
+    c.innerHTML = "";
+    let any = false;
+
+    layers.forEach(layer => {
+      if (!layer.fields || typeof layer.queryFeatures !== "function") return;
+
+      const fields = layer.fields.filter(f => f.type === "string" || f.domain).slice(0, 3);
+      if (!fields.length) return;
+
+      any = true;
+
+      const box = document.createElement("div");
+      box.className = "fb";
+      box.innerHTML = '<div class="ft">' + (layer.title || "Camada") + '</div>';
+
+      const selects = [];
+
+      fields.forEach(field => {
+        const s = document.createElement("select");
+        s.innerHTML = '<option value="">— ' + (field.alias || field.name) + ' —</option>';
+        s.dataset.field = field.name;
+
+        if (field.domain && field.domain.codedValues) {
+          field.domain.codedValues.forEach(cv => {
+            s.innerHTML += '<option value="' + cv.code + '">' + cv.name + '</option>';
+          });
+        } else {
+          layer.queryFeatures({
+            where: "1=1",
+            outFields: [field.name],
+            returnDistinctValues: true,
+            returnGeometry: false,
+            num: 50
+          }).then(result => {
+            const values = [...new Set(
+              result.features
+                .map(f => f.attributes[field.name])
+                .filter(v => v !== null && v !== undefined && v !== "")
+            )].sort();
+
+            values.forEach(v => {
+              s.innerHTML += '<option value="' + v + '">' + v + '</option>';
+            });
+          }).catch(console.error);
+        }
+
+        s.addEventListener("change", () => {
+          const clauses = selects
+            .filter(x => x.value)
+            .map(x => x.dataset.field + "='" + escapeSqlValue(x.value) + "'");
+
+          layer.definitionExpression = clauses.length ? clauses.join(" AND ") : "";
+        });
+
+        selects.push(s);
+        box.appendChild(s);
+      });
+
+      const btn = document.createElement("button");
+      btn.className = "fc";
+      btn.textContent = "Limpar";
+      btn.onclick = () => {
+        selects.forEach(s => s.value = "");
+        layer.definitionExpression = "";
+      };
+
+      box.appendChild(btn);
+      c.appendChild(box);
+    });
+
+    if (!any) {
+      c.innerHTML = '<div style="font-size:9px;color:#7a9ab8;">Sem filtros.</div>';
+    }
+  }
+
+  function buildLegend(layers) {
+    const c = document.getElementById("lg");
+    c.innerHTML = "";
+    let any = false;
+
+    layers.forEach(layer => {
+      const r = layer.renderer;
+      if (!r) return;
+      any = true;
+
+      const ld = document.createElement("div");
+      ld.className = "leg-l";
+      ld.innerHTML = '<div class="leg-t">' + (layer.title || "Camada") + '</div>';
+
+      function addItem(symbol, label) {
+        const it = document.createElement("div");
+        it.className = "leg-i";
+
+        const sw = document.createElement("div");
+        const cl = symbol && symbol.color ? "rgb(" + symbol.color.r + "," + symbol.color.g + "," + symbol.color.b + ")" : "#aaa";
+
+        if (!symbol) {
+          sw.className = "sw";
+          sw.style.background = "#aaa";
+        } else if (symbol.type === "simple-line" || symbol.type === "esriSLS") {
+          sw.className = "sw ln";
+          sw.style.background = cl;
+        } else if (symbol.type === "simple-marker" || symbol.type === "esriSMS") {
+          sw.className = "sw ci";
+          sw.style.background = cl;
+        } else {
+          sw.className = "sw";
+          sw.style.background = cl;
+        }
+
+        const lbl = document.createElement("span");
+        lbl.className = "lbl";
+        lbl.textContent = label || "";
+
+        it.appendChild(sw);
+        it.appendChild(lbl);
+        ld.appendChild(it);
+      }
+
+      if (r.type === "simple") {
+        addItem(r.symbol, layer.title);
+      } else if (r.type === "unique-value") {
+        (r.uniqueValueInfos || []).forEach(u => addItem(u.symbol, u.label || u.value));
+      } else if (r.type === "class-breaks") {
+        (r.classBreakInfos || []).forEach(b => addItem(b.symbol, b.label));
+      } else {
+        addItem(null, "Ver mapa");
+      }
+
+      c.appendChild(ld);
+    });
+
+    if (!any) {
+      c.innerHTML = '<div style="font-size:9px;color:#7a9ab8;">Sem legenda.</div>';
+    }
+  }
+
+  async function initMap() {
+    try {
+      showLoader("Carregando WebMap privado...");
+      setStatus("Autenticado", false);
+
+      const portal = new Portal({
+        url: CONFIG.portalUrl,
+        authMode: "immediate"
+      });
+
+      await portal.load();
+
+      if (portal.user && portal.user.username) {
+        setStatus("✓ " + portal.user.username, false);
+      }
+
+      webmap = new WebMap({
+        portalItem: {
+          id: CONFIG.webmapId,
+          portal: {
+            url: CONFIG.portalUrl
+          }
+        }
+      });
+
+      view = new MapView({
+        container: "am",
+        map: webmap,
+        ui: { components: [] }
+      });
+
+      window._v = view;
+
+      await view.when();
+
+      const layers = webmap.allLayers.filter(layer => {
+        return !["tile", "vector-tile", "base-tile"].includes(layer.type);
+      });
+
+      buildLayers(layers);
+      buildFilters(layers);
+      buildLegend(layers);
+
+      hideLoader();
+      loginBtn.style.display = "none";
+      logoutBtn.style.display = "block";
+    } catch (e) {
+      console.error("Falha ao iniciar mapa:", e);
+      setStatus("Falha no acesso", true);
+      showError("Não foi possível autenticar/carregar o WebMap privado.<br>Verifique App ID, Redirect URI e permissões do item.");
+    }
+  }
+
+  async function signIn() {
+    try {
+      showLoader("Abrindo login ArcGIS...");
+
+      const info = new OAuthInfo({
+        appId: CONFIG.appId,
+        portalUrl: CONFIG.portalUrl,
+        popup: true,
+        popupCallbackUrl: CONFIG.redirectUri,
+        flowType: "auto"
+      });
+
+      esriId.registerOAuthInfos([info]);
+
+      await esriId.getCredential(CONFIG.portalUrl + "/sharing", {
+        oAuthPopupConfirmation: false
+      });
+
+      await initMap();
+    } catch (e) {
+      console.error("Falha no login:", e);
+      setStatus("Login necessário", true);
+      showError("O login não foi concluído.");
+    }
+  }
+
+  async function tryRestoreSession() {
+    try {
+      const info = new OAuthInfo({
+        appId: CONFIG.appId,
+        portalUrl: CONFIG.portalUrl,
+        popup: true,
+        popupCallbackUrl: CONFIG.redirectUri,
+        flowType: "auto"
+      });
+
+      esriId.registerOAuthInfos([info]);
+
+      const credential = await esriId.checkSignInStatus(CONFIG.portalUrl + "/sharing");
+      if (credential) {
+        await initMap();
+      } else {
+        setStatus("Não autenticado", true);
+        showError("Clique em “Entrar no ArcGIS” para acessar o WebMap privado.");
+      }
+    } catch (e) {
+      setStatus("Não autenticado", true);
+      showError("Clique em “Entrar no ArcGIS” para acessar o WebMap privado.");
+    }
+  }
+
+  loginBtn.addEventListener("click", signIn);
+
+  logoutBtn.addEventListener("click", () => {
+    esriId.destroyCredentials();
+    window.location.reload();
+  });
+
+  window.gerarPDF = async function() {
+    const { jsPDF } = window.jspdf;
+    const sh = document.getElementById("sh");
+    const sb = document.getElementById("sb");
+    const mn = document.getElementById("mn");
+
+    sb.style.display = "none";
+    mn.style.marginLeft = "0";
+
+    try {
+      await new Promise(r => setTimeout(r, 600));
+      const cv = await html2canvas(sh, { scale: 2, useCORS: true, allowTaint: true });
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      pdf.addImage(cv.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, 297, 210);
+      pdf.save("Lead_" + document.getElementById("p6").value.replace(/\s/g, "_") + ".pdf");
+    } finally {
+      sb.style.display = "flex";
+      mn.style.marginLeft = "250px";
+    }
+  };
+
+  [
+    ["p0","d0"],["p1","d1"],["p2","d2"],["p3","d3"],["p4","d4"],["p5","d5"],
+    ["p6","d6"],["p7","d7"],["p8","d8"],["p9","d9"],["p10","d10"],["p11","d11"],["p12","d12"]
+  ].forEach(([i,d]) => {
+    const el = document.getElementById(i);
+    const dl = document.getElementById(d);
+    if (el && dl) {
+      el.addEventListener("input", () => {
+        dl.textContent = el.value;
+      });
+    }
+  });
+
+  tryRestoreSession();
 });
 </script>
 </body>
