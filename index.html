@@ -1,41 +1,3 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Croqui Lead GF</title>
-
-<link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
-<script src="https://js.arcgis.com/4.29/"></script>
-
-<style>
-html,body{margin:0;height:100%;font-family:Arial;}
-#map{height:100%;}
-#loading{
-  position:absolute;inset:0;
-  display:flex;align-items:center;justify-content:center;
-  background:#fff;z-index:10;
-  font-size:14px;color:#555;
-}
-#login{
-  position:absolute;top:10px;left:10px;z-index:20;
-}
-button{
-  padding:8px 12px;border:none;background:#185FA5;color:#fff;
-  cursor:pointer;border-radius:4px;font-weight:bold;
-}
-</style>
-</head>
-
-<body>
-
-<div id="login">
-  <button id="btnLogin">🔐 Entrar</button>
-</div>
-
-<div id="loading">Aguardando autenticação...</div>
-<div id="map"></div>
-
 <script>
 require([
   "esri/WebMap",
@@ -45,98 +7,326 @@ require([
   "esri/portal/Portal"
 ], function(WebMap, MapView, OAuthInfo, esriId, Portal) {
 
-  const CONFIG = {
-    portalUrl: "https://leadgf.maps.arcgis.com",
-    webmapId: "5d5ef5a6a71042739973816e388dbd4c",
-    appId: "it2vHNbwi9ZItczZ",
-    redirectUri: "https://leadfelipe.github.io/croqui-lead/oauth-callback.html"
-  };
+  const PORTAL_URL = "https://leadgf.maps.arcgis.com";
+  const WEBMAP_ID  = "5d5ef5a6a71042739973816e388dbd4c";
+  const APP_ID = "it2vHNbwi9ZItczZ";
+  const REDIRECT_URI = "https://leadfelipe.github.io/croqui-lead/oauth-callback.html";
 
-  const loading = document.getElementById("loading");
-  const btnLogin = document.getElementById("btnLogin");
-
-  function show(msg){
-    loading.style.display="flex";
-    loading.innerHTML=msg;
-  }
-
-  function hide(){
-    loading.style.display="none";
-  }
-
-  function initOAuth(){
+  function registerOAuth() {
     const info = new OAuthInfo({
-      appId: CONFIG.appId,
-      portalUrl: CONFIG.portalUrl,
+      appId: APP_ID,
+      portalUrl: PORTAL_URL,
       popup: true,
-      popupCallbackUrl: CONFIG.redirectUri
+      popupCallbackUrl: REDIRECT_URI,
+      flowType: "auto"
     });
-
     esriId.registerOAuthInfos([info]);
   }
 
-  async function login(){
-    try{
-      show("Abrindo login...");
-      await esriId.getCredential(CONFIG.portalUrl + "/sharing");
-      await initMap();
-    }catch(e){
-      console.error(e);
-      show("Erro no login");
+  function setUserBadge(text) {
+    document.getElementById("user-badge").textContent = text;
+  }
+
+  function showMapError(msg) {
+    document.getElementById("map-loading").innerHTML =
+      '<span style="color:#c55;font-size:10px;padding:8px;text-align:center;">' + msg + '</span>';
+  }
+
+  async function ensureLogin() {
+    registerOAuth();
+
+    try {
+      await esriId.checkSignInStatus(PORTAL_URL + "/sharing");
+      return true;
+    } catch (e) {
+      try {
+        await esriId.getCredential(PORTAL_URL + "/sharing", {
+          oAuthPopupConfirmation: false
+        });
+        return true;
+      } catch (err) {
+        console.error("Falha no login:", err);
+        showMapError("Erro no login OAuth.");
+        return false;
+      }
     }
   }
 
-  async function initMap(){
-    try{
-      show("Carregando mapa privado...");
+  async function init() {
+    const ok = await ensureLogin();
+    if (!ok) return;
 
+    try {
       const portal = new Portal({
-        url: CONFIG.portalUrl,
+        url: PORTAL_URL,
         authMode: "immediate"
       });
 
       await portal.load();
+      setUserBadge(portal.user ? "✓ " + portal.user.username : "✓ Logado");
 
       const webmap = new WebMap({
-        portalItem: { id: CONFIG.webmapId }
+        portalItem: {
+          id: WEBMAP_ID,
+          portal: { url: PORTAL_URL }
+        }
       });
 
       const view = new MapView({
-        container: "map",
-        map: webmap
+        container: "arcgis-map",
+        map: webmap,
+        ui: { components: [] }
       });
+
+      window._view = view;
 
       await view.when();
 
-      hide();
-      btnLogin.style.display="none";
+      document.getElementById("map-loading").style.display = "none";
 
-    }catch(e){
-      console.error(e);
-      show("Erro ao carregar WebMap");
+      const opLayers = webmap.allLayers.filter(l =>
+        !["tile", "vector-tile", "base-tile", "basemap"].includes(l.type)
+      );
+
+      buildLayers(opLayers);
+      buildFilters(opLayers);
+      buildLegend(opLayers);
+
+    } catch (err) {
+      console.error(err);
+      showMapError("Erro ao carregar o WebMap: " + err.message);
     }
   }
 
-  async function tryAutoLogin(){
-    try{
-      const credential = await esriId.checkSignInStatus(CONFIG.portalUrl + "/sharing");
-      if(credential){
-        await initMap();
-      }else{
-        show("Clique em Entrar para acessar");
+  function buildLayers(layers) {
+    const c = document.getElementById("layer-list");
+    c.innerHTML = "";
+    if (!layers.length) {
+      c.innerHTML = '<div style="font-size:9px;color:#7a9ab8;">Nenhuma camada.</div>';
+      return;
+    }
+
+    layers.forEach(lyr => {
+      const d = document.createElement("div");
+      d.className = "lyr-item";
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+      cb.checked = lyr.visible;
+      cb.addEventListener("change", () => lyr.visible = cb.checked);
+
+      const dot = document.createElement("div");
+      dot.className = "lyr-dot";
+      dot.style.background = getColor(lyr);
+
+      const lbl = document.createElement("span");
+      lbl.textContent = lyr.title || "Camada";
+
+      d.appendChild(cb);
+      d.appendChild(dot);
+      d.appendChild(lbl);
+      c.appendChild(d);
+    });
+  }
+
+  function getColor(lyr) {
+    try {
+      const sym =
+        lyr.renderer &&
+        (lyr.renderer.symbol ||
+          (lyr.renderer.uniqueValueInfos &&
+           lyr.renderer.uniqueValueInfos[0] &&
+           lyr.renderer.uniqueValueInfos[0].symbol));
+
+      const c = sym && sym.color;
+      return c ? `rgb(${c.r},${c.g},${c.b})` : "#5DCAA5";
+    } catch (e) {
+      return "#5DCAA5";
+    }
+  }
+
+  function buildFilters(layers) {
+    const c = document.getElementById("filter-section");
+    c.innerHTML = "";
+    let any = false;
+
+    layers.forEach(lyr => {
+      if (!lyr.fields) return;
+
+      const fields = lyr.fields.filter(f => f.type === "string" || f.domain).slice(0, 4);
+      if (!fields.length) return;
+
+      any = true;
+
+      const b = document.createElement("div");
+      b.className = "fb";
+      b.innerHTML = `<div class="fb-title">${lyr.title}</div>`;
+
+      const sels = [];
+
+      fields.forEach(field => {
+        const sel = document.createElement("select");
+        sel.innerHTML = `<option value="">— ${field.alias || field.name} —</option>`;
+
+        if (field.domain && field.domain.codedValues) {
+          field.domain.codedValues.forEach(cv => {
+            sel.innerHTML += `<option value="${cv.code}">${cv.name}</option>`;
+          });
+        } else if (lyr.queryFeatures) {
+          lyr.queryFeatures({
+            where: "1=1",
+            outFields: [field.name],
+            returnDistinctValues: true,
+            returnGeometry: false,
+            num: 50
+          }).then(r => {
+            [...new Set(
+              r.features.map(f => f.attributes[field.name]).filter(v => v != null)
+            )].sort().forEach(v => {
+              sel.innerHTML += `<option value="${v}">${v}</option>`;
+            });
+          }).catch(() => {});
+        }
+
+        sel.dataset.field = field.name;
+        sel.addEventListener("change", () => {
+          const clauses = sels
+            .filter(s => s.value)
+            .map(s => `${s.dataset.field}='${String(s.value).replace(/'/g, "''")}'`);
+          lyr.definitionExpression = clauses.length ? clauses.join(" AND ") : "";
+        });
+
+        sels.push(sel);
+        b.appendChild(sel);
+      });
+
+      const btn = document.createElement("button");
+      btn.className = "fb-clear";
+      btn.textContent = "Limpar";
+      btn.onclick = () => {
+        sels.forEach(s => s.value = "");
+        lyr.definitionExpression = "";
+      };
+
+      b.appendChild(btn);
+      c.appendChild(b);
+    });
+
+    if (!any) {
+      c.innerHTML = '<div style="font-size:9px;color:#7a9ab8;">Sem filtros disponíveis.</div>';
+    }
+  }
+
+  function buildLegend(layers) {
+    const c = document.getElementById("legend-list");
+    c.innerHTML = "";
+    let any = false;
+
+    layers.forEach(lyr => {
+      const r = lyr.renderer;
+      if (!r) return;
+      any = true;
+
+      const ld = document.createElement("div");
+      ld.className = "leg-layer";
+      ld.innerHTML = `<div class="leg-layer-title">${lyr.title || "Camada"}</div>`;
+
+      function addI(sym, label) {
+        const it = document.createElement("div");
+        it.className = "leg-item";
+
+        const sw = document.createElement("div");
+        const clr = sym && sym.color ? `rgb(${sym.color.r},${sym.color.g},${sym.color.b})` : "#aaa";
+
+        if (!sym) {
+          sw.className = "leg-sw";
+          sw.style.background = "#aaa";
+        } else if (sym.type === "simple-line" || sym.type === "esriSLS") {
+          sw.className = "leg-sw line";
+          sw.style.background = clr;
+        } else if (sym.type === "simple-marker" || sym.type === "esriSMS") {
+          sw.className = "leg-sw circle";
+          sw.style.background = clr;
+        } else {
+          sw.className = "leg-sw";
+          sw.style.background = clr;
+        }
+
+        const lb = document.createElement("span");
+        lb.className = "leg-lbl";
+        lb.textContent = label || "";
+
+        it.appendChild(sw);
+        it.appendChild(lb);
+        ld.appendChild(it);
       }
-    }catch{
-      show("Clique em Entrar para acessar");
+
+      if (r.type === "simple") addI(r.symbol, lyr.title);
+      else if (r.type === "unique-value") (r.uniqueValueInfos || []).forEach(u => addI(u.symbol, u.label || u.value));
+      else if (r.type === "class-breaks") (r.classBreakInfos || []).forEach(b => addI(b.symbol, b.label));
+      else addI(null, "Ver mapa");
+
+      c.appendChild(ld);
+    });
+
+    if (!any) {
+      c.innerHTML = '<div style="font-size:9px;color:#7a9ab8;">Sem legenda disponível.</div>';
     }
   }
 
-  btnLogin.addEventListener("click", login);
+  window.captureExtent = function() {
+    const v = window._view;
+    if (!v) return;
+    const e = v.extent;
+    alert(`XMin:${e.xmin.toFixed(0)} YMin:${e.ymin.toFixed(0)}\nXMax:${e.xmax.toFixed(0)} YMax:${e.ymax.toFixed(0)}`);
+  };
 
-  initOAuth();
-  tryAutoLogin();
+  window.gerarPDF = async function() {
+    const { jsPDF } = window.jspdf;
+    const sheet = document.getElementById("sheet");
+    const sb = document.getElementById("sidebar");
+    const mn = document.getElementById("main");
 
+    sb.style.display = "none";
+    mn.style.marginLeft = "0";
+
+    try {
+      await new Promise(r => setTimeout(r, 600));
+      const canvas = await html2canvas(sheet, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        foreignObjectRendering: false
+      });
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", 0, 0, 297, 210);
+      pdf.save(`Lead_${document.getElementById("inp-codigo").value.replace(/\s/g, "_") || "croqui"}.pdf`);
+    } finally {
+      sb.style.display = "flex";
+      mn.style.marginLeft = "260px";
+    }
+  };
+
+  [
+    ["inp-projeto","disp-projeto"],
+    ["inp-proprietario","disp-proprietario"],
+    ["inp-imovel","disp-imovel"],
+    ["inp-municipio","disp-municipio"],
+    ["inp-uf","disp-uf"],
+    ["inp-matricula","disp-matricula"],
+    ["inp-codigo","disp-codigo"],
+    ["inp-faixa","disp-faixa"],
+    ["inp-area","disp-area"],
+    ["inp-car","disp-car"],
+    ["inp-escala","disp-escala"],
+    ["inp-data","disp-data"],
+    ["inp-datum","disp-datum"]
+  ].forEach(([i, d]) => {
+    const el = document.getElementById(i);
+    const dl = document.getElementById(d);
+    if (el && dl) el.addEventListener("input", () => dl.textContent = el.value);
+  });
+
+  init();
 });
 </script>
-
-</body>
-</html>
